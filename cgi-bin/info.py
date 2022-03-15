@@ -63,7 +63,8 @@ def exist_table():
 form = cgi.FieldStorage()
 tid = 0
 
-if "tid" in form.keys(): tid = int(form.getfirst("tid"))
+if "tid" in form.keys():
+    tid = int(form.getfirst("tid"))
 
 DB = sqlite3.connect('DB/torrents.db3')
 cur = DB.cursor()
@@ -80,12 +81,13 @@ if exist_table() == 'block':
     DB = sqlite3.connect('DB/content.db3')
     cur = DB.cursor()
     try:
-        cur.execute('SELECT files FROM files WHERE tid=%s;' % tid)
-        rr = cur.fetchone()
+        cur.execute('SELECT tid, name, size, ord FROM files WHERE tid=%s;' % tid)
+        rr = cur.fetchall()
         if rr:
-            list_files = zlib.decompress(rr[0])
-            fl = list_files.decode('utf-8')
-            fl = eval(fl)
+            fl = rr
+            # list_files = zlib.decompress(rr[0])
+            # fl = list_files.decode('utf-8')
+            # fl = eval(fl)
         else:
             result = '''<h3 style="text-align:center">Запись отсутствует</h3>'''
     except sqlite3.OperationalError:
@@ -109,7 +111,7 @@ html_head = '''<!DOCTYPE HTML>
 <div class="layer6">
 '''
 
-print('content­type: text/html\n')
+print('content-type: text/html\n')
 if r:
     print(html_head % (r[3]))
     print('<table class="subtable"><tr>')
@@ -118,7 +120,8 @@ if r:
         '<td style="width: 18%; vertical-align:middle"><p class="info" title="{} байт">Размер: <b>{}</b></p></td>'.format(
             sepp(r[4]), calc(r[4])))
     print(
-        '<td style="width: 10%; vertical-align:middle" align="right"><div class="folder" style="display:{}"><div class="files"><h2 style="margin-bottom:3px">Список файлов:</h2>'.format(
+        '<td style="width: 10%; vertical-align:middle" align="right"><div class="folder" style="display:{}"><div '
+        'class="files"><h2 style="margin-bottom:3px">Список файлов:</h2>'.format(
             exist_table()))
     print('''<table class="subtable">''')
     if len(fl) > 0:
@@ -126,26 +129,32 @@ if r:
 
         if int(fl[0][2]) == 0:
             print(
-                '''<tr><td colspan=2 style="background-color:#bad5cc; padding-left: {}em"><img class="td-folder" src="../IMG/opened-folder.png"><h4 style="display:inline">{}</h4></td></tr>'''.format(
+                '''<tr><td colspan=2 style="background-color:#bad5cc; padding-left: {}em"><img class="td-folder" 
+                src="../IMG/opened-folder.png"><h4 style="display:inline">{}</h4></td></tr>'''.format(
                     offset, fl[0][1]))
             cat = "f"
         else:
             print(
-                '''<tr><td style="padding-left: {}em"><img class="td-file" src="../IMG/file.png">{}</td><td align="right" style="padding-right: 1em;width: 7em;" title="{} байт">{}</td></tr>'''.format(
+                '''<tr><td style="padding-left: {}em"><img class="td-file" src="../IMG/file.png">{}</td><td 
+                align="right" style="padding-right: 1em;width: 7em;" title="{} байт">{}</td></tr>'''.format(
                     offset + 1, fl[0][1], sepp(fl[0][2]), calc(int(fl[0][2]))))
             cat = "d"
             offset += 1
         for item in fl[1:]:
             if int(item[2]) == 0:
-                if cat != "d": offset += 2
-                if cat == "f": offset -= 2
+                if cat != "d":
+                    offset += 2
+                if cat == "f":
+                    offset -= 2
                 print(
-                    '''<tr><td colspan=2 style="background-color:#d1e6df; padding-left: {}em"><img class="td-folder" src="../IMG/opened-folder.png"><h4 style="display:inline">{}</h4></td></tr>'''.format(
+                    '''<tr><td colspan=2 style="background-color:#d1e6df; padding-left: {}em"><img class="td-folder" 
+                    src="../IMG/opened-folder.png"><h4 style="display:inline">{}</h4></td></tr>'''.format(
                         offset + 1, item[1]))
                 cat = "d"
             else:
                 print(
-                    '''<tr><td style="padding-left: {}em"><img class="td-file" src="../IMG/file.png">{}</td><td align="right" style="padding-right: 1em; width: 7em;" title="{} байт">{}</td></tr>'''.format(
+                    '''<tr><td style="padding-left: {}em"><img class="td-file" src="../IMG/file.png">{}</td><td 
+                    align="right" style="padding-right: 1em; width: 7em;" title="{} байт">{}</td></tr>'''.format(
                         offset + 2, item[1], sepp(item[2]), calc(int(item[2]))))
                 cat = "f"
     print('''</table><br>''')
@@ -153,8 +162,11 @@ if r:
     print('<td style="width: 15%; vertical-align:middle" align="right"><p class="info"><b>{}</b> {}</p></td>'.format(
         r[5][:10], r[5][11:]))
     print(
-        '<td style="width: 7%;"><a href="magnet:?xt=urn:btih:{}"><img src="../IMG/download40.png" align="right" alt="Скачать" title="Скачать по magnet-ссылке"></a></td></tr></table></div>'.format(
-            r[2]))
+        '<td style="width: 7%;">'
+        '<a href="magnet:?xt=urn:btih:{}&tr=http%3A%2F%2Fbt3.t-ru.org%2Fann%3Fmagnet">'
+        '<img src="../IMG/download40.png" align="right" alt="Скачать" title="Скачать по magnet-ссылке">'
+        '</a>'
+        '</td></tr></table></div>'.format(r[2]))
     print('<div class="layer3" style="height: 91vh">')
     print('<div class="layer5"><h2>{}</h2></div>'.format(r[3]))
 else:
